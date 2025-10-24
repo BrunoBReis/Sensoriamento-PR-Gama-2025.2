@@ -40,16 +40,10 @@ This is how files and directories are organize.
             </a>
         </td>
         <td align="center">
-            <a href="https://github.com/MariaCHelena">
+            <a href="https://github.com/pedroslrn">
                 <img style="border-radius: 50%;" src="https://github.com/pedroslrn.png" width="150px;"/>
                 <h5 class="text-center">Pedro<br>Victor</h5>
             </a>
         </td>
 </table>
 </center>
-
----
-
-| [![](https://avatars.githubusercontent.com/BrunoBReis)](https://github.com/BrunoBReis) | [![](https://avatars.githubusercontent.com/pedroslrn)](https://github.com/pedroslrn) |
-| -------------- | --------------- |
-| Bruno Bragança | Pedro Victor |
