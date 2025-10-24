@@ -13,6 +13,7 @@ Image Processing for the detection of agricultural areas and native vegetation
     ├── build/
     ├── CMakeLists.txt
     ├── compile_commands.json -> build/compile_commands.json
+    ├── images/
     ├── README.md
     ├── scripts/
     └── src/
@@ -25,6 +26,7 @@ This is how files and directories are organize.
 - `build/`: directory for building process by cmake;
 - `CMakeLists.txt`: configuration file for cmake;
 - `compile_commands.json`: json file for LSP;
+- `images/`: images to analize
 - `scirpts/`: scirpts file to help with cmake;
 - `src/`: main files
 
