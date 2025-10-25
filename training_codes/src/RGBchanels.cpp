@@ -4,10 +4,10 @@
 #include <cstdio>
 #include <opencv2/opencv.hpp>
 
-int main() {
+using namespace cv;
+using namespace std;
 
-  using namespace cv;
-  using namespace std;
+int main() {
 
   Mat espectro = imread("../images/espectro.png");
 
