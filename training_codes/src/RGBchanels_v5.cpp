@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <iostream>
 #include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
@@ -9,6 +10,10 @@ int main(void) {
 
   Mat image = imread("../images/espectro.png", IMREAD_COLOR_BGR);
   auto image_size = image.size();
+
+  // creating correct path
+  filesystem::path outdir = "../results/RGBcode/test_4/";
+  filesystem::create_directories(outdir);
 
   if (image.empty()) {
     cerr << "Error: Could load image\n";

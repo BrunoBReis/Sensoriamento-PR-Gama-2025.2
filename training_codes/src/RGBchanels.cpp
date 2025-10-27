@@ -2,6 +2,7 @@
 // opencv4` Para executar: ./main
 
 // #include <cstdio>
+#include <filesystem>
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
@@ -19,6 +20,10 @@ int main() {
     cout << "Erro ao carregar a imagem" << '\n';
     return -1; // erro
   }
+
+  // Código para criar as pastas corretas
+  filesystem::path outdir = "../results/RGBcode/reference/";
+  filesystem::create_directories(outdir);
 
   // cor azul //
 

@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <iostream>
 #include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
@@ -21,6 +22,10 @@ int main(void) {
   // defining path
   string path = "../images/espectro.png";
   Mat image = imread(path, IMREAD_COLOR_BGR);
+
+  // creating correct path
+  filesystem::path outdir = "../results/RGBcode/test_3/";
+  filesystem::create_directories(outdir);
 
   // error handling //
 
