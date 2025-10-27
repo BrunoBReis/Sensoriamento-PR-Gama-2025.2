@@ -10,6 +10,7 @@ using namespace std;
 
 int main() {
 
+  // lembrando que os canais são organizados da maneria BGR
   Mat espectro = imread("../images/espectro.png");
 
   // verifica se a imagem foi carregada corretamente
@@ -35,7 +36,7 @@ int main() {
   // possui apenas um canal (ou seja, é uma imagem em escala de
   // cinza).
 
-  canal_azul[0] = Mat::zeros(espectro.size(), CV_8UC1);
+  canal_azul[0] = Mat::zeros(espectro.size(), CV_8UC1); // canal azul
 
   Mat imagem_s_azul; // declarando variável imagem sem azul
 
@@ -51,7 +52,7 @@ int main() {
   vector<Mat> canal_verde;
   split(espectro, canal_verde);
 
-  canal_verde[1] = Mat::zeros(espectro.size(), CV_8UC1); // canal azul
+  canal_verde[1] = Mat::zeros(espectro.size(), CV_8UC1); // canal verde
 
   Mat imagem_s_verde;
   merge(canal_verde, imagem_s_verde);
@@ -65,7 +66,7 @@ int main() {
   vector<Mat> canal_vermelho;
   split(espectro, canal_vermelho);
 
-  canal_vermelho[2] = Mat::zeros(espectro.size(), CV_8UC1); // canal azul
+  canal_vermelho[2] = Mat::zeros(espectro.size(), CV_8UC1); // canal vermelho
 
   Mat imagem_s_vermelho;
   merge(canal_vermelho, imagem_s_vermelho);
@@ -81,16 +82,22 @@ int main() {
 
   ///////////////////////////////////////////////////////////////////////////////////////////
 
-  imshow("Imagem Original", espectro);        // mostrar imagem og
-  imshow("Imagem sem azul", imagem_s_azul);   // mostrar imagem sem a cor azul
-  imshow("Imagem sem verde", imagem_s_verde); // mostrar imagem sem a cor verde
-  imshow("Imagem sem vermelho",
-         imagem_s_vermelho); // mostrar imagem sem a cor vermelha
-  imshow("Imagem em preto e branco", cinza); // mostrar imagem em preto e branco
+  imwrite("../results/RGBcode/reference/no_blue.png", imagem_s_azul);
+  imwrite("../results/RGBcode/reference/no_green.png", imagem_s_verde);
+  imwrite("../results/RGBcode/reference/no_red.png", imagem_s_vermelho);
+  imwrite("../results/RGBcode/reference/gray.png", cinza);
 
-  waitKey(0);
-
-  destroyAllWindows();
+  // imshow("Imagem Original", espectro);        // mostrar imagem og
+  // imshow("Imagem sem azul", imagem_s_azul);   // mostrar imagem sem a cor
+  // azul imshow("Imagem sem verde", imagem_s_verde); // mostrar imagem sem a
+  // cor verde imshow("Imagem sem vermelho",
+  //        imagem_s_vermelho); // mostrar imagem sem a cor vermelha
+  // imshow("Imagem em preto e branco", cinza); // mostrar imagem em preto e
+  // branco
+  //
+  // waitKey(0);
+  //
+  // destroyAllWindows();
 
   return 0;
 }

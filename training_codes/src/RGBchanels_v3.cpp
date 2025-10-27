@@ -30,24 +30,20 @@ int main(void) {
   split(image, channels);
   // [0] = blue; [1] = green; [2] = red;
 
-  // creating images with one channel removed
-
-  // without blue //
+  // getting the same reference
   vector<Mat> noBlue = channels;
-  noBlue[0] = Mat::zeros(image.size(), CV_8UC1);
-  Mat imageNoBlue;
-  merge(noBlue, imageNoBlue);
-
-  // without green //
   vector<Mat> noGreen = channels;
-  noGreen[1] = Mat::zeros(image.size(), CV_8UC1);
-  Mat imageNoGreen;
-  merge(noGreen, imageNoGreen);
-
-  // without red //
   vector<Mat> noRed = channels;
-  noGreen[2] = Mat::zeros(image.size(), CV_8UC1);
-  Mat imageNoRed;
+
+  // removing specfic color for each
+
+  noBlue[0] = Mat::zeros(image.size(), CV_8UC1);
+  noGreen[1] = Mat::zeros(image.size(), CV_8UC1);
+  noRed[2] = Mat::zeros(image.size(), CV_8UC1);
+
+  Mat imageNoBlue, imageNoGreen, imageNoRed;
+  merge(noBlue, imageNoBlue);
+  merge(noGreen, imageNoGreen);
   merge(noRed, imageNoRed);
 
   // Convert original to grey
@@ -56,10 +52,10 @@ int main(void) {
 
   // Display Results
 
-  imwrite("../results/RGBcode/test_1/no_blue.png", imageNoBlue);
-  imwrite("../results/RGBcode/test_1/no_green.png", imageNoGreen);
-  imwrite("../results/RGBcode/test_1/no_red.png", imageNoRed);
-  imwrite("../results/RGBcode/test_1/gray.png", grayImage);
+  imwrite("../results/RGBcode/test_2/no_blue.png", imageNoBlue);
+  imwrite("../results/RGBcode/test_2/no_green.png", imageNoGreen);
+  imwrite("../results/RGBcode/test_2/no_red.png", imageNoRed);
+  imwrite("../results/RGBcode/test_2/gray.png", grayImage);
 
   // imshow("Original", image);
   // imshow("Without Blue", imageNoBlue);
