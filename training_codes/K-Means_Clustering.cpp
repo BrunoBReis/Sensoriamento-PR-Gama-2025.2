@@ -1,76 +1,182 @@
-#include <opencv2/opencv.hpp>   // Inclui a biblioteca principal do OpenCV (para processamento de imagens)
-#include <iostream>             // Inclui a biblioteca padrão de entrada/saída (cout, cin, etc)
-#include <vector>               // Inclui o tipo de dado "vector" (vetor dinâmico do C++)
+#include <opencv2/opencv.hpp>
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <iomanip>
 
-using namespace cv;             // Permite usar as classes do OpenCV sem precisar escrever "cv::"
-using namespace std;            // Permite usar elementos padrão do C++ sem "std::"
+using namespace cv;
+using namespace std;
 
 int main() {
+    string path = "C:/Users/pedro/Documents/UnB/GAMA/img4.png";
+    Mat img = imread(path);
 
-    // Vetor de strings com os caminhos das imagens a serem processadas
-    vector<string> imagens = {...};
-
-    int K = 4; // número de clusters (quantas cores/grupos o K-means vai separar)
-    int contador = 1; // contador para nomear as janelas e arquivos de saída
-
-    // Loop para processar todas as imagens
-    for (const string& caminho : imagens) {
-        cout << "Processando: " << caminho << endl;  // Mostra no terminal qual imagem está sendo processada
-
-        Mat img = imread(caminho);   // Lê a imagem do disco
-        if (img.empty()) {           // Verifica se a imagem foi carregada corretamente
-            cerr << "Erro ao carregar: " << caminho << endl;  // Exibe mensagem de erro
-            continue; // Pula para a próxima imagem do vetor
-        }
-
-        // ====== Pré-processamento ======
-
-        Mat data;
-        img.convertTo(data, CV_32F); // Converte os valores de pixel para float (necessário para o K-means)
-        data = data.reshape(1, img.rows * img.cols); // Transforma a matriz 3D (altura x largura x canais)
-                                                     // em uma matriz 2D (número_de_pixels x 3 canais)
-                                                     // Ou seja, "achatamos" a imagem em uma lista de pixels RGB
-
-        // ====== Aplicação do K-means ======
-
-        Mat labels, centers;  // labels: indica o cluster de cada pixel | centers: cores médias de cada cluster
-
-        kmeans(
-            data,             // Dados de entrada (pixels)
-            K,                // Número de clusters
-            labels,           // Vetor de saída com o índice do cluster de cada pixel
-            TermCriteria(TermCriteria::EPS + TermCriteria::MAX_ITER, 10, 1.0), // Critério de parada
-            3,                // Número de tentativas (para achar o melhor agrupamento)
-            KMEANS_PP_CENTERS,// Método de inicialização dos centros
-            centers            // Matriz de saída com as cores médias (centros)
-        );
-
-        // ====== Reconstrução da imagem segmentada ======
-
-        centers = centers.reshape(3, centers.rows);  // Ajusta os centros para formato 3 canais (RGB)
-        Mat new_image(img.size(), CV_32FC3);         // Cria uma nova imagem com mesmo tamanho e tipo float
-
-        // Preenche a nova imagem substituindo cada pixel pela cor do seu cluster correspondente
-        for (int i = 0; i < img.rows * img.cols; i++) {
-            int cluster_idx = labels.at<int>(i);  // Obtém o índice do cluster do pixel i
-            new_image.at<Vec3f>(i / img.cols, i % img.cols) = centers.at<Vec3f>(cluster_idx);
-        }
-
-        new_image.convertTo(new_image, CV_8U);   // Converte de volta para 8 bits (0–255) para exibição
-
-        // ====== Exibição e salvamento ======
-
-        string janela = "K-Means " + to_string(contador);  // Nome da janela de exibição
-        imshow(janela, new_image);                         // Mostra a imagem segmentada na tela
-
-        // Gera um nome de arquivo de saída com o número da imagem
-        string saida = "C:/Users/pedro/Documents/UnB/GAMA/segmentada_" + to_string(contador) + ".png";
-        imwrite(saida, new_image);                         // Salva a imagem processada no disco
-        cout << "Imagem salva em: " << saida << endl;      // Confirma no terminal
-
-        contador++; // incrementa o número da imagem
+    if (img.empty()) {
+        cout << "Erro ao abrir imagem." << endl;
+        return -1;
     }
 
-    waitKey(0); // Espera o usuário pressionar uma tecla antes de fechar as janelas
-    return 0;   // Encerra o programa
+    Mat data = img.reshape(1, img.rows * img.cols);
+    data.convertTo(data, CV_32F);
+
+    // 
+    int K = 5;
+    Mat labels, centers;
+    TermCriteria criteria(TermCriteria::EPS + TermCriteria::COUNT, 10, 1.0);
+
+    kmeans(data, K, labels, criteria, 3, KMEANS_PP_CENTERS, centers);
+
+    // --- CONFIGURAÇÕES DE FILTRO ---
+    double whiteThreshold = 170.0; // Nuvens/Céu
+    double maxDistance = 60.0;     // Precisão da cor
+
+    // Vetores para armazenar propriedades dos clusters
+    vector<bool> isClusterValid(K, true);
+    vector<float> clusterBrightness(K, 0.0f);
+    vector<int> clusterClass(K, 0); // 0=Descartado, 1=Nativa(Escuro), 2=Plantacao(Claro)
+
+    float somaBrilhoValidos = 0;
+    int qtdValidos = 0;
+
+    cout << "--- Analise Inicial (K=" << K << ") ---" << endl;
+    for (int i = 0; i < K; i++) {
+        float b = centers.at<float>(i, 0);
+        float g = centers.at<float>(i, 1);
+        float r = centers.at<float>(i, 2);
+
+        // 1. Calcula Brilho/Luminosidade Simples
+        float brightness = (b + g + r) / 3.0f;
+        clusterBrightness[i] = brightness;
+
+        // 2. Filtro de Nuvens (Branco)
+        bool isBright = (b > whiteThreshold && g > whiteThreshold && r > whiteThreshold);
+
+        if (isBright) {
+            isClusterValid[i] = false;
+            clusterClass[i] = 0; // 0 = Descartado
+            cout << "Cluster " << i << " [REJEITADO - NUVEM]: Brilho " << (int)brightness << endl;
+        }
+        else {
+            // Acumula para calcular a média depois
+            somaBrilhoValidos += brightness;
+            qtdValidos++;
+            cout << "Cluster " << i << " [VALIDO]: Brilho " << (int)brightness << endl;
+        }
+    }
+
+    // --- LÓGICA DE CLASSIFICAÇÃO AUTOMÁTICA ---
+    // Calculamos a "linha de corte" entre o escuro e o claro
+    float mediaBrilho = 0;
+    if (qtdValidos > 0) mediaBrilho = somaBrilhoValidos / qtdValidos;
+
+    cout << "\n--- Classificacao Automatica (Media de Corte: " << (int)mediaBrilho << ") ---" << endl;
+
+    for (int i = 0; i < K; i++) {
+        if (!isClusterValid[i]) continue; // Pula nuvens
+
+        if (clusterBrightness[i] < mediaBrilho) {
+            clusterClass[i] = 1; // 1 = VEGETAÇÃO NATIVA (Escuro)
+            cout << "Cluster " << i << " -> Classificado como: VEGETACAO NATIVA (Escuro)" << endl;
+        }
+        else {
+            clusterClass[i] = 2; // 2 = PLANTAÇÃO (Claro)
+            cout << "Cluster " << i << " -> Classificado como: PLANTACAO (Claro)" << endl;
+        }
+    }
+
+    // --- CONTAGEM DE PIXELS ---
+    // Vamos somar tudo direto nas categorias finais
+    long pixelsNativa = 0;
+    long pixelsPlantacao = 0;
+    long pixelsRejeitados = 0;
+
+    for (int i = 0; i < data.rows; i++) {
+        int clusterIdx = labels.at<int>(i);
+
+        // Se o cluster base já é nuvem, descarta
+        if (clusterClass[clusterIdx] == 0) {
+            pixelsRejeitados++;
+            continue;
+        }
+
+        // Verifica Distância (Filtro de Ruído)
+        float b = data.at<float>(i, 0);
+        float g = data.at<float>(i, 1);
+        float r = data.at<float>(i, 2);
+        float cB = centers.at<float>(clusterIdx, 0);
+        float cG = centers.at<float>(clusterIdx, 1);
+        float cR = centers.at<float>(clusterIdx, 2);
+        double dist = sqrt(pow(b - cB, 2) + pow(g - cG, 2) + pow(r - cR, 2));
+
+        if (dist > maxDistance) {
+            pixelsRejeitados++; // Cor válida, mas muito distante do centro (ruído)
+            continue;
+        }
+
+        // Soma nas categorias finais
+        if (clusterClass[clusterIdx] == 1) {
+            pixelsNativa++;
+        }
+        else if (clusterClass[clusterIdx] == 2) {
+            pixelsPlantacao++;
+        }
+    }
+
+    // --- EXIBIÇÃO DOS RESULTADOS ---
+    float totalPixels = (float)img.rows * img.cols;
+    float percNativa = (pixelsNativa / totalPixels) * 100.0f;
+    float percPlantacao = (pixelsPlantacao / totalPixels) * 100.0f;
+    float percRejeitados = (pixelsRejeitados / totalPixels) * 100.0f;
+
+    cout << fixed << setprecision(2);
+    cout << "\n========================================" << endl;
+    cout << " RELATORIO FINAL DE COBERTURA DE SOLO " << endl;
+    cout << "========================================" << endl;
+    cout << "Vegetacao Nativa (Tons Escuros): " << percNativa << "%" << endl;
+    cout << "Plantacao (Tons Claros):         " << percPlantacao << "%" << endl;
+    cout << "----------------------------------------" << endl;
+    cout << "Area Irrelevante (Nuvens/Fundo): " << percRejeitados << "%" << endl;
+    cout << "Soma Total: " << (percNativa + percPlantacao + percRejeitados) << "%" << endl;
+
+    // --- VISUALIZAÇÃO INTELIGENTE ---
+    // Agora pintamos a imagem com cores de MAPA para facilitar sua validação
+    Mat resultImage(img.size(), img.type());
+
+    for (int i = 0; i < img.rows * img.cols; i++) {
+        int r = i / img.cols;
+        int c = i % img.cols;
+        int clusterIdx = labels.at<int>(i);
+
+        float b = data.at<float>(i, 0);
+        float g = data.at<float>(i, 1);
+        float r_val = data.at<float>(i, 2);
+        float cB = centers.at<float>(clusterIdx, 0);
+        float cG = centers.at<float>(clusterIdx, 1);
+        float cR = centers.at<float>(clusterIdx, 2);
+        double dist = sqrt(pow(b - cB, 2) + pow(g - cG, 2) + pow(r_val - cR, 2));
+
+        // Se for ruído ou nuvem, pinta de Rosa
+        if (clusterClass[clusterIdx] == 0 || dist > maxDistance) {
+            resultImage.at<Vec3b>(r, c) = Vec3b(255, 0, 255); // Rosa Choque
+        }
+        else if (clusterClass[clusterIdx] == 1) {
+            // Nativa -> Verde Escuro Puro
+            resultImage.at<Vec3b>(r, c) = Vec3b(0, 100, 0);
+        }
+        else if (clusterClass[clusterIdx] == 2) {
+            // Plantação -> Verde Claro Limão
+            resultImage.at<Vec3b>(r, c) = Vec3b(0, 255, 100);
+        }
+    }
+
+    // Janelas
+    // Redimensiona para caber na tela se a imagem for 4k
+    namedWindow("Classificacao (Verde Escuro=Nativa, Claro=Plantacao)", WINDOW_NORMAL);
+    resizeWindow("Classificacao (Verde Escuro=Nativa, Claro=Plantacao)", 800, 600);
+
+    imshow("Classificacao (Verde Escuro=Nativa, Claro=Plantacao)", resultImage);
+    imshow("Original", img);
+    waitKey(0);
+
+    return 0;
 }
