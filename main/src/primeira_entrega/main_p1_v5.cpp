@@ -20,24 +20,16 @@ int main(void) {
   cin >> image_choice;
   switch (image_choice) {
   case 1:
-    filename = "../images/"
-               "2021-08-26-00_00_2021-08-26-23_59_Sentinel-2_L2A_Highlight_"
-               "Optimized_Natural_Color (1).png";
+    filename = "../../images/river_and_clouds.png";
     break;
   case 2:
-    filename = "../images/"
-               "2021-08-26-00_00_2021-08-26-23_59_Sentinel-2_L2A_Highlight_"
-               "Optimized_Natural_Color (2).png";
+    filename = "../../images/squares.png";
     break;
   case 3:
-    filename = "../images/"
-               "2021-08-26-00_00_2021-08-26-23_59_Sentinel-2_L2A_Highlight_"
-               "Optimized_Natural_Color.png";
+    filename = "../../images/big_clouds.png";
     break;
   case 4:
-    filename =
-        "../images/"
-        "2022-05-18-00_00_2022-05-18-23_59_Sentinel-2_L2A_True_Color.png";
+    filename = "../../images/hard_image.png";
     break;
   }
 

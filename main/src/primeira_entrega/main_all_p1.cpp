@@ -11,10 +11,10 @@ using namespace cv;
 int main(void) {
 
   vector<string> Fs{
-      "../images/river_and_clouds.png",
-      "../images/squares.png",
-      "../images/big_clouds.png",
-      "../images/hard_image.png",
+      "../../images/river_and_clouds.png",
+      "../../images/squares.png",
+      "../../images/big_clouds.png",
+      "../../images/hard_image.png",
   };
 
   string prefix = "../images/";

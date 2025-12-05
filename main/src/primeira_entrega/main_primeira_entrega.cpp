@@ -10,9 +10,7 @@ using namespace cv;
 int main(void) {
 
   // Fazendo a leitura manual
-  string filename = "../images/"
-                    "2021-08-26-00_00_2021-08-26-23_59_Sentinel-2_L2A_"
-                    "Highlight_Optimized_Natural_Color (1).png";
+  string filename = "../../images/big_clouds.png";
   Mat image = imread(filename);
 
   // Tratamento de Erros
